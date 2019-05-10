@@ -13,20 +13,26 @@ except mysql.connector.Error as err:
     print(err)
 cursor = cnx.cursor()
 def photofunc(bot, update):
-    if update.message.caption != None:
-        update.message.reply_text(update.message.caption)
-    now = datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')
-    file_id = update.message.photo[-1].file_id
-    photo = bot.getFile(file_id)
-    imgfilename = uuid.uuid4().hex
-    photo.download(cfg.imgsavepath+imgfilename)
-    eintrag = "INSERT INTO `instatgbot` (`title`, `text`, `link`, `imgfile`, `user`, `timestamp`) VALUES (%s, %s, %s, %s, %s, %s)"
-    eintrag_data = (html.escape(update.message.caption), '', '', imgfilename, update.message.from_user.id, now)
-    cursor.execute(eintrag, eintrag_data)
-    cnx.commit()
+    if update.message.chat.id == cfg.tgallowedgroup:
+        if update.message.caption != None:
+            update.message.reply_text(update.message.caption)
+        now = datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+        file_id = update.message.photo[-1].file_id
+        photo = bot.getFile(file_id)
+        imgfilename = uuid.uuid4().hex
+        photo.download(cfg.imgsavepath+imgfilename)
+        eintrag = "INSERT INTO `instatgbot` (`title`, `text`, `link`, `imgfile`, `user`, `timestamp`) VALUES (%s, %s, %s, %s, %s, %s)"
+        eintrag_data = (html.escape(update.message.caption), '', '', imgfilename, update.message.from_user.id, now)
+        cursor.execute(eintrag, eintrag_data)
+        cnx.commit()
+    else:
+        update.message.reply_text('Sorry, Falsche Gruppe')
 
 def startfunc(bot, update):
-    update.message.reply_text('Huhu, hier kannst du Instaposts quasi erstellen \n\nWenn du diesem Bot ein Bild schickst wird die Bild Unterschrift / Beschreibung als Instagrampost verwendet')
+    if update.message.chat.id == cfg.tgallowedgroup:
+    	update.message.reply_text('Huhu, hier kannst du Instaposts quasi erstellen \n\nWenn du diesem Bot ein Bild schickst wird die Bild Unterschrift / Beschreibung als Instagrampost verwendet')
+    else:
+        update.message.reply_text('Sorry, Falsche Gruppe')
 
 bot_key = cfg.bot_key
 updater = Updater(bot_key)
