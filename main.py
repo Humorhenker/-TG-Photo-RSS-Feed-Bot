@@ -13,7 +13,7 @@ except mysql.connector.Error as err:
     print(err)
 cursor = cnx.cursor()
 def photofunc(bot, update):
-    if update.message.chat.id == cfg.tgallowedgroup:
+    if str(update.message.chat.id) == cfg.tgallowedgroup:
         if update.message.caption != None:
             update.message.reply_text(update.message.caption)
         now = datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')
@@ -26,13 +26,13 @@ def photofunc(bot, update):
         cursor.execute(eintrag, eintrag_data)
         cnx.commit()
     else:
-        update.message.reply_text('Sorry, Falsche Gruppe')
+        update.message.reply_text('Sorry, Falsche Gruppe '+str(update.message.chat.id))
 
 def startfunc(bot, update):
-    if update.message.chat.id == cfg.tgallowedgroup:
+    if str(update.message.chat.id) == cfg.tgallowedgroup:
     	update.message.reply_text('Huhu, hier kannst du Instaposts quasi erstellen \n\nWenn du diesem Bot ein Bild schickst wird die Bild Unterschrift / Beschreibung als Instagrampost verwendet')
     else:
-        update.message.reply_text('Sorry, Falsche Gruppe')
+        update.message.reply_text('Sorry, Falsche Gruppe '+str(update.message.chat.id))
 
 bot_key = cfg.bot_key
 updater = Updater(bot_key)
