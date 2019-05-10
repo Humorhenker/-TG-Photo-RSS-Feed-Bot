@@ -11,22 +11,29 @@ except mysql.connector.Error as err:
     print(err)
 cursor = cnx.cursor()
 def testfunc(bot, update):
-    update.message.reply_text(
-    update.message.text)
+    if update.message.caption != None:
+        update.message.reply_text(update.message.caption)
     now = datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')
-    eintrag = "INSERT INTO `instatgbot` (`title`, `text`, `link`, `user`, `timestamp`) VALUES (%s, %s, %s, %s, %s)"
-    eintrag_data = (html.escape(update.message.text.split('\n', 1)[0]), html.escape(update.message.text.split('\n', 1)[1]), '', update.message.from_user.id, now)
+    file_id = update.message.photo[-1].file_id
+    photo = bot.getFile(file_id)
+    imgpath = "J:\Documents\Geek\Python\projects\insta-bot\img.jpg"
+    photo.download(imgpath)
+    with open(imgpath, "rb") as imageFile:
+        photoB = imageFile.read()
+    eintrag = "INSERT INTO `instatgbot` (`title`, `text`, `image`, `link`, `user`, `timestamp`) VALUES (%s, %s, %s, %s, %s, %s)"
+    eintrag_data = (html.escape(update.message.caption), '', photoB, '', update.message.from_user.id, now)
     cursor.execute(eintrag, eintrag_data)
     cnx.commit()
 
 def startfunc(bot, update):
-    update.message.reply_text('Huhu, hier kannst du Instaposts quasi erstellen \n\nBitte so vorhegehen: \nTitle\nText')
+    update.message.reply_text('Huhu, hier kannst du Instaposts quasi erstellen \n\nWenn du diesem Bot ein Bild schickst wird die Bild Unterschrift / Beschreibung als Instagrampost verwendet')
+
 
 bot_key = sys.argv[1]
 updater = Updater(bot_key)
 
 updater.dispatcher.add_handler(CommandHandler('start', startfunc))
-updater.dispatcher.add_handler(MessageHandler(Filters.text, testfunc))
+updater.dispatcher.add_handler(MessageHandler(Filters.photo, testfunc))
 
 updater.start_polling()
 updater.idle()
