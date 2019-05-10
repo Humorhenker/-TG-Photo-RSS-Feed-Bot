@@ -1,5 +1,20 @@
 <?php
-// XML-Datei automatisch erstellen
+//    TG Photo RSS-Feed Bot
+//    Copyright (C) 2019  Paul
+//
+//    This program is free software: you can redistribute it and/or modify
+//    it under the terms of the GNU General Public License as published by
+//    the Free Software Foundation, either version 3 of the License, or
+//    (at your option) any later version.
+//
+//    This program is distributed in the hope that it will be useful,
+//    but WITHOUT ANY WARRANTY; without even the implied warranty of
+//    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+//    GNU General Public License for more details.
+//
+//    You should have received a copy of the GNU General Public License
+//    along with this program.  If not, see <http://www.gnu.org/licenses/>.
+
 $xml = new DOMDocument('1.0', 'utf-8');
 $xml->formatOutput = true;
     
@@ -12,8 +27,7 @@ $rss->appendChild($channel);
 
 $config = parse_ini_file('../../private/config.ini');
 
-// Head des Feeds    
-$head = $xml->createElement('title', 'Mein erster RSS TEST Feed');
+$head = $xml->createElement('title', 'TG Photo RSS-Feed Bot RSS-Feed');
 $channel->appendChild($head);
     
 $head = $xml->createElement('description', 'TEST');
@@ -28,7 +42,6 @@ $channel->appendChild($head);
 $head = $xml->createElement('lastBuildDate', date("D, j M Y H:i:s ", time()).' GMT+2');
 $channel->appendChild($head);
 
-// Feed Einträge
 $connection = mysqli_connect($config['dbservername'], $config['dbusername'], $config['dbpassword'], $config['dbname']);
 
 $result = mysqli_query($connection, 'SELECT `title`, `text`, `link`, `imgfile`, `user`, `timestamp` FROM `instatgbot` ORDER BY `timestamp` DESC');
@@ -53,10 +66,9 @@ while ($rssdata = mysqli_fetch_array($result))
     $item->appendChild($data);
 }
   
-// Speichere XML Datei
+
 $xml->save('rss/rss_feed.xml');
 
-// Rufe die XML Datei auf
 Header( 'Location: ' .  $config['rssurl']);
 mysqli_close($connection);
 ?>
