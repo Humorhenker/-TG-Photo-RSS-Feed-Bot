@@ -10,6 +10,8 @@ $xml->appendChild($rss);
 $channel = $xml->createElement('channel');
 $rss->appendChild($channel); 
 
+$config = parse_ini_file('../../private/config.ini');
+
 // Head des Feeds    
 $head = $xml->createElement('title', 'Mein erster RSS TEST Feed');
 $channel->appendChild($head);
@@ -27,10 +29,9 @@ $head = $xml->createElement('lastBuildDate', date("D, j M Y H:i:s ", time()).' G
 $channel->appendChild($head);
 
 // Feed Einträge
-$config = parse_ini_file('../../private/config.ini');
 $connection = mysqli_connect($config['dbservername'], $config['dbusername'], $config['dbpassword'], $config['dbname']);
 
-$result = mysqli_query($connection, 'SELECT `title`, `text`, `image`, `link`, `user`, `timestamp` FROM `instatgbot` ORDER BY `timestamp` DESC');
+$result = mysqli_query($connection, 'SELECT `title`, `text`, `link`, `imgfile`, `user`, `timestamp` FROM `instatgbot` ORDER BY `timestamp` DESC');
 while ($rssdata = mysqli_fetch_array($result))
 {	
     $item = $xml->createElement('item');
@@ -39,10 +40,10 @@ while ($rssdata = mysqli_fetch_array($result))
     $data = $xml->createElement('title', htmlspecialchars(nl2br($rssdata["title"])));
     $item->appendChild($data);
     
-    $data = $xml->createElement('description', htmlspecialchars(nl2br($rssdata["text"]) . '<br /><img src="data:image/jpeg;base64,' . base64_encode($rssdata['image']) . '"/>' . '<br />created by ' . $rssdata['user']));
-    $item->appendChild($data);   
+    $data = $xml->createElement('description', htmlspecialchars(nl2br($rssdata["text"]) . '<br />created by ' . $rssdata['user']));
+    $item->appendChild($data);    
         
-    $data = $xml->createElement('link', $rssdata["link"]);
+    $data = $xml->createElement('link', $rssdata["link"] . $config['imgpath'] . $rssdata["imgfile"]);
     $item->appendChild($data);
     
     $data = $xml->createElement('pubDate', date("D, j M Y H:i:s ", strtotime($rssdata["timestamp"])).' GMT+2');
