@@ -20,6 +20,7 @@ import mysql.connector
 import datetime
 import html
 import uuid
+import os
 import config as cfg
 from telegram.ext import Updater, CommandHandler, MessageHandler, Filters
 try:
@@ -39,15 +40,26 @@ def photofunc(bot, update):
         eintrag = "INSERT INTO `instatgbot` (`title`, `text`, `link`, `imgfile`, `user`, `timestamp`) VALUES (%s, %s, %s, %s, %s, %s)"
         eintrag_data = (html.escape(update.message.caption), '', '', imgfilename, update.message.from_user.id, now)
         cursor.execute(eintrag, eintrag_data)
+        abfrage = "SELECT `id`, `imgfile` from `instatgbot` WHERE DATEDIFF(`timestamp`, %s) > %s"
+        abfrage_data = (now, cfg.deletedaydiff)
+        cursor.execute(abfrage, abfrage_data)
+        for (id, imgfile) in cursor:
+            filepath = cfg.imgsavepath+imgfile
+            if os.path.exists(filepath):
+                os.remove(filepath)
+            eintrag = "DELETE FROM `instatgbot` WHERE `id` LIKE %s;"
+            eintrag_data = (id)
+            cursor.execute(eintrag, eintrag_data)
         cnx.commit()
     else:
         update.message.reply_text('Sorry, Falsche Gruppe '+str(update.message.chat.id))
 
 def startfunc(bot, update):
     if str(update.message.chat.id) == cfg.tgallowedgroup:
-    	update.message.reply_text('Huhu, mit diesem Bot kannst du Instaposts erstellen \n\nWenn du diesem Bot ein Bild schickst wird die Bild Unterschrift / Beschreibung als Instagrampost verwendet \n\nDieser Bot wurde von Paul erstellt. Quellcode: https://gitlab.roteserver.de/Humorhenker/tg-photo-rss-feed-bot/ \n    TG Photo RSS-Feed Bot  Copyright (C) 2019  Paul \nThis program comes with ABSOLUTELY NO WARRANTY; This is free software, and you are welcome to redistribute it under certain conditions; for details see https://gitlab.roteserver.de/Humorhenker/tg-photo-rss-feed-bot/blob/master/LICENSE')
+    	update.message.reply_text('Huhu, mit diesem Bot kannst du Instaposts erstellen \n\nWenn du diesem Bot ein Bild schickst wird die Bild Unterschrift / Beschreibung als Instagrampost verwendet.')
     else:
         update.message.reply_text('Sorry, Falsche Gruppe '+str(update.message.chat.id))
+    update.message.reply_text('Dieser Bot wurde von Paul erstellt. Quellcode: https://gitlab.roteserver.de/Humorhenker/tg-photo-rss-feed-bot/ \n    TG Photo RSS-Feed Bot  Copyright (C) 2019  Paul \nThis program comes with ABSOLUTELY NO WARRANTY; This is free software, and you are welcome to redistribute it under certain conditions; for details see https://gitlab.roteserver.de/Humorhenker/tg-photo-rss-feed-bot/blob/master/LICENSE')
 
 bot_key = cfg.bot_key
 updater = Updater(bot_key)
