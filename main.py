@@ -30,15 +30,18 @@ except mysql.connector.Error as err:
 cursor = cnx.cursor()
 def photofunc(bot, update):
     if str(update.message.chat.id) == cfg.tgallowedgroup:
-        if update.message.caption != None:
-            update.message.reply_text(update.message.caption)
+        update.message.reply_text('Okidoki')
         now = datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')
         file_id = update.message.photo[-1].file_id
         photo = bot.getFile(file_id)
         imgfilename = uuid.uuid4().hex
         photo.download(cfg.imgsavepath+imgfilename)
+        if update.message.caption != None:
+            captioneintrag = html.escape(update.message.caption)
+        else:
+            captioneintrag = ''
         eintrag = "INSERT INTO `instatgbot` (`title`, `text`, `link`, `imgfile`, `user`, `timestamp`) VALUES (%s, %s, %s, %s, %s, %s)"
-        eintrag_data = (html.escape(update.message.caption), '', '', imgfilename, update.message.from_user.id, now)
+        eintrag_data = (captioneintrag, '', '', imgfilename, update.message.from_user.id, now)
         cursor.execute(eintrag, eintrag_data)
         abfrage = "SELECT `id`, `imgfile` from `instatgbot` WHERE DATEDIFF(`timestamp`, %s) > %s"
         abfrage_data = (now, cfg.deletedaydiff)
@@ -59,7 +62,7 @@ def startfunc(bot, update):
     	update.message.reply_text('Huhu, mit diesem Bot kannst du Instaposts erstellen \n\nWenn du diesem Bot ein Bild schickst wird die Bild Unterschrift / Beschreibung als Instagrampost verwendet.')
     else:
         update.message.reply_text('Sorry, Falsche Gruppe '+str(update.message.chat.id))
-    update.message.reply_text('Dieser Bot wurde von Paul erstellt. Quellcode: https://gitlab.roteserver.de/Humorhenker/tg-photo-rss-feed-bot/ \n    TG Photo RSS-Feed Bot  Copyright (C) 2019  Paul \nThis program comes with ABSOLUTELY NO WARRANTY; This is free software, and you are welcome to redistribute it under certain conditions; for details see https://gitlab.roteserver.de/Humorhenker/tg-photo-rss-feed-bot/blob/master/LICENSE')
+    update.message.reply_text('   TG Photo RSS-Feed Bot  Copyright (C) 2019  Paul \nThis program comes with ABSOLUTELY NO WARRANTY; This is free software, and you are welcome to redistribute it under certain conditions; for details see https://gitlab.roteserver.de/Humorhenker/tg-photo-rss-feed-bot/blob/master/LICENSE')
 
 bot_key = cfg.bot_key
 updater = Updater(bot_key)
