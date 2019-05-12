@@ -62,7 +62,7 @@ def startfunc(bot, update):
     	update.message.reply_text('Huhu, mit diesem Bot kannst du Instaposts erstellen \n\nWenn du diesem Bot ein Bild schickst wird die Bild Unterschrift / Beschreibung als Instagrampost verwendet.')
     else:
         update.message.reply_text('Sorry, Falsche Gruppe '+str(update.message.chat.id))
-    update.message.reply_text('   TG Photo RSS-Feed Bot  Copyright (C) 2019  Paul \nThis program comes with ABSOLUTELY NO WARRANTY; This is free software, and you are welcome to redistribute it under certain conditions; for details see https://gitlab.roteserver.de/Humorhenker/tg-photo-rss-feed-bot/blob/master/LICENSE')
+    bot.send_message(chat_id=update.message.chat.id, text='TG Photo RSS-Feed Bot  Copyright (C) 2019  Paul \nThis program comes with ABSOLUTELY NO WARRANTY; This is free software, and you are welcome to redistribute it under certain conditions; for details see https://gitlab.roteserver.de/Humorhenker/tg-photo-rss-feed-bot/blob/master/LICENSE', disable_web_page_preview=True)
 
 bot_key = cfg.bot_key
 updater = Updater(bot_key)
