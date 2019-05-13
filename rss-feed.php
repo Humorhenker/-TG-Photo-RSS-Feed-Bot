@@ -44,26 +44,28 @@ $channel->appendChild($head);
 
 $connection = mysqli_connect($config['dbservername'], $config['dbusername'], $config['dbpassword'], $config['dbname']);
 
-$result = mysqli_query($connection, 'SELECT `title`, `text`, `link`, `imgfile`, `user`, `timestamp` FROM `instatgbot` ORDER BY `timestamp` DESC');
+$result = mysqli_query($connection, 'SELECT `title`, `text`, `link`, `imgfile`, `user`, `timestamp`, `publish` FROM `instatgbot` ORDER BY `timestamp` DESC');
 while ($rssdata = mysqli_fetch_array($result))
 {	
-    $item = $xml->createElement('item');
-    $channel->appendChild($item);
+    if ($rssdata['publish'] == 1) {
+        $item = $xml->createElement('item');
+        $channel->appendChild($item);
+            
+        $data = $xml->createElement('title', htmlspecialchars(nl2br($rssdata["title"])));
+        $item->appendChild($data);
         
-    $data = $xml->createElement('title', htmlspecialchars(nl2br($rssdata["title"])));
-    $item->appendChild($data);
-    
-    $data = $xml->createElement('description', htmlspecialchars(nl2br($rssdata["text"]) . '<br />created by ' . $rssdata['user']));
-    $item->appendChild($data);    
+        $data = $xml->createElement('description', htmlspecialchars(nl2br($rssdata["text"]) . '<br />created by ' . $rssdata['user']));
+        $item->appendChild($data);    
+            
+        $data = $xml->createElement('link', $rssdata["link"] . $config['imgpath'] . $rssdata["imgfile"]);
+        $item->appendChild($data);
         
-    $data = $xml->createElement('link', $rssdata["link"] . $config['imgpath'] . $rssdata["imgfile"]);
-    $item->appendChild($data);
-    
-    $data = $xml->createElement('pubDate', date("D, j M Y H:i:s ", strtotime($rssdata["timestamp"])).' GMT+2');
-    $item->appendChild($data);
-    
-    $data = $xml->createElement('guid', $rssdata["link"]);
-    $item->appendChild($data);
+        $data = $xml->createElement('pubDate', date("D, j M Y H:i:s ", strtotime($rssdata["timestamp"])).' GMT+2');
+        $item->appendChild($data);
+        
+        $data = $xml->createElement('guid', $rssdata["link"]);
+        $item->appendChild($data);
+    }
 }
   
 

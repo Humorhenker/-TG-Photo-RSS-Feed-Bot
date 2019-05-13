@@ -40,8 +40,8 @@ def photofunc(bot, update):
             captioneintrag = html.escape(update.message.caption)
         else:
             captioneintrag = ''
-        eintrag = "INSERT INTO `instatgbot` (`title`, `text`, `link`, `imgfile`, `user`, `timestamp`) VALUES (%s, %s, %s, %s, %s, %s)"
-        eintrag_data = (captioneintrag, '', '', imgfilename, update.message.from_user.id, now)
+	eintrag = "INSERT INTO `instatgbot` (`title`, `text`, `link`, `imgfile`, `user`, `timestamp`, `publish`) VALUES (%s, %s, %s, %s, %s, %s, %s)"
+        eintrag_data = (captioneintrag, '', '', imgfilename, update.message.from_user.id, now, cfg.publish)
         cursor.execute(eintrag, eintrag_data)
         abfrage = "SELECT `id`, `imgfile` from `instatgbot` WHERE DATEDIFF(`timestamp`, %s) > %s"
         abfrage_data = (now, cfg.deletedaydiff)
