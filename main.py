@@ -22,11 +22,13 @@ import html
 import uuid
 import os
 import config as cfg
+import logging
 from telegram.ext import Updater, CommandHandler, MessageHandler, Filters
+logging.basicConfig(filename=cfg.logpath, level=logging.INFO, filemode='w', format='%(asctime)s %(message)s', datefmt='%d/%m/%Y %H:%M:%S')
 try:
     cnx = mysql.connector.connect(user=cfg.mysql['user'], password=cfg.mysql['password'], host='127.0.0.1', database=cfg.mysql['db'])
 except mysql.connector.Error as err:
-    print(err)
+    logging.error('MYSQL '+str(err))
 cursor = cnx.cursor()
 def photofunc(bot, update):
     if str(update.message.chat.id) == cfg.tgallowedgroup:
@@ -40,7 +42,10 @@ def photofunc(bot, update):
             captioneintrag = html.escape(update.message.caption)
         else:
             captioneintrag = ''
-	eintrag = "INSERT INTO `instatgbot` (`title`, `text`, `link`, `imgfile`, `user`, `timestamp`, `publish`) VALUES (%s, %s, %s, %s, %s, %s, %s)"
+    	try:
+			eintrag = "INSERT INTO `instatgbot` (`title`, `text`, `link`, `imgfile`, `user`, `timestamp`, `publish`) VALUES (%s, %s, %s, %s, %s, %s, %s)"
+    	except mysql.connector.Error as err:
+        	logging.error('MYSQL '+str(err))
         eintrag_data = (captioneintrag, '', '', imgfilename, update.message.from_user.id, now, cfg.publish)
         cursor.execute(eintrag, eintrag_data)
         abfrage = "SELECT `id`, `imgfile` from `instatgbot` WHERE DATEDIFF(`timestamp`, %s) > %s"
