@@ -25,13 +25,13 @@ import config as cfg
 import logging
 from telegram.ext import Updater, CommandHandler, MessageHandler, Filters
 logging.basicConfig(filename=cfg.logpath, level=logging.INFO, filemode='w', format='%(asctime)s %(message)s', datefmt='%d/%m/%Y %H:%M:%S')
-try:
-    cnx = mysql.connector.connect(user=cfg.mysql['user'], password=cfg.mysql['password'], host='127.0.0.1', database=cfg.mysql['db'])
-except mysql.connector.Error as err:
-    logging.error('MYSQL '+str(err))
-cursor = cnx.cursor()
 def photofunc(bot, update):
     if str(update.message.chat.id) == cfg.tgallowedgroup:
+        try:
+            cnx = mysql.connector.connect(user=cfg.mysql['user'], password=cfg.mysql['password'], host='127.0.0.1', database=cfg.mysql['db'])
+        except mysql.connector.Error as err:
+            logging.error('MYSQL '+str(err))
+        cursor = cnx.cursor()
         update.message.reply_text('Okidoki')
         now = datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')
         file_id = update.message.photo[-1].file_id
