@@ -27,38 +27,41 @@ from telegram.ext import Updater, CommandHandler, MessageHandler, Filters
 logging.basicConfig(filename=cfg.logpath, level=logging.INFO, filemode='w', format='%(asctime)s %(message)s', datefmt='%d/%m/%Y %H:%M:%S')
 def photofunc(bot, update):
     if str(update.message.chat.id) == cfg.tgallowedgroup:
-        try:
-            cnx = mysql.connector.connect(user=cfg.mysql['user'], password=cfg.mysql['password'], host='127.0.0.1', database=cfg.mysql['db'])
-        except mysql.connector.Error as err:
-            logging.error('MYSQL '+str(err))
-        cursor = cnx.cursor()
-        update.message.reply_text('Okidoki')
-        now = datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')
-        file_id = update.message.photo[-1].file_id
-        photo = bot.getFile(file_id)
-        imgfilename = uuid.uuid4().hex
-        photo.download(cfg.imgsavepath+imgfilename)
-        if update.message.caption != None:
-            captioneintrag = html.escape(update.message.caption)
-        else:
-            captioneintrag = ''
-    	try:
-			eintrag = "INSERT INTO `instatgbot` (`title`, `text`, `link`, `imgfile`, `user`, `timestamp`, `publish`) VALUES (%s, %s, %s, %s, %s, %s, %s)"
-    	except mysql.connector.Error as err:
-        	logging.error('MYSQL '+str(err))
-        eintrag_data = (captioneintrag, '', '', imgfilename, update.message.from_user.id, now, cfg.publish)
-        cursor.execute(eintrag, eintrag_data)
-        abfrage = "SELECT `id`, `imgfile` from `instatgbot` WHERE DATEDIFF(`timestamp`, %s) > %s"
-        abfrage_data = (now, cfg.deletedaydiff)
-        cursor.execute(abfrage, abfrage_data)
-        for (id, imgfile) in cursor:
-            filepath = cfg.imgsavepath+imgfile
-            if os.path.exists(filepath):
-                os.remove(filepath)
-            eintrag = "DELETE FROM `instatgbot` WHERE `id` LIKE %s;"
-            eintrag_data = (id)
+        if update.message.caption != 'private' and update.message.caption != 'Private':
+            try:
+                cnx = mysql.connector.connect(user=cfg.mysql['user'], password=cfg.mysql['password'], host='127.0.0.1', database=cfg.mysql['db'])
+            except mysql.connector.Error as err:
+                logging.error('MYSQL '+str(err))
+            cursor = cnx.cursor()
+            update.message.reply_text('Okidoki')
+            now = datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+            file_id = update.message.photo[-1].file_id
+            photo = bot.getFile(file_id)
+            imgfilename = uuid.uuid4().hex
+            photo.download(cfg.imgsavepath+imgfilename)
+            if update.message.caption != None:
+                captioneintrag = html.escape(update.message.caption)
+            else:
+                captioneintrag = ''
+            try:
+                eintrag = "INSERT INTO `instatgbot` (`title`, `text`, `link`, `imgfile`, `user`, `timestamp`, `publish`) VALUES (%s, %s, %s, %s, %s, %s, %s)"
+            except mysql.connector.Error as err:
+                logging.error('MYSQL '+str(err))
+            eintrag_data = (captioneintrag, '', '', imgfilename, update.message.from_user.id, now, cfg.publish)
             cursor.execute(eintrag, eintrag_data)
-        cnx.commit()
+            abfrage = "SELECT `id`, `imgfile` from `instatgbot` WHERE DATEDIFF(`timestamp`, %s) > %s"
+            abfrage_data = (now, cfg.deletedaydiff)
+            cursor.execute(abfrage, abfrage_data)
+            for (id, imgfile) in cursor:
+                filepath = cfg.imgsavepath+imgfile
+                if os.path.exists(filepath):
+                    os.remove(filepath)
+                eintrag = "DELETE FROM `instatgbot` WHERE `id` LIKE %s;"
+                eintrag_data = (id)
+                cursor.execute(eintrag, eintrag_data)
+            cnx.commit()
+        else:
+            update.message.reply_text('Okay, bleibt geheim')
     else:
         update.message.reply_text('Sorry, Falsche Gruppe '+str(update.message.chat.id))
 
