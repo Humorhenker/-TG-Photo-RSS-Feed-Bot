@@ -14,63 +14,75 @@
 //
 //    You should have received a copy of the GNU General Public License
 //    along with this program.  If not, see <http://www.gnu.org/licenses/>.
-
-$xml = new DOMDocument('1.0', 'utf-8');
-$xml->formatOutput = true;
-    
-$rss = $xml->createElement('rss');
-$rss->setAttribute('version', '2.0');
-$xml->appendChild($rss);
-    
-$channel = $xml->createElement('channel');
-$rss->appendChild($channel); 
-
 $config = parse_ini_file('../../private/config.ini');
-
-$head = $xml->createElement('title', 'TG Photo RSS-Feed Bot RSS-Feed');
-$channel->appendChild($head);
-    
-$head = $xml->createElement('description', 'TEST');
-$channel->appendChild($head);
-    
-$head = $xml->createElement('language', 'de');
-$channel->appendChild($head);
-    
-$head = $xml->createElement('link', $config['url']);
-$channel->appendChild($head);
-
-$head = $xml->createElement('lastBuildDate', date("D, j M Y H:i:s ", time()).' GMT+2');
-$channel->appendChild($head);
-
-$connection = mysqli_connect($config['dbservername'], $config['dbusername'], $config['dbpassword'], $config['dbname']);
-
-$result = mysqli_query($connection, 'SELECT `title`, `text`, `link`, `imgfile`, `user`, `timestamp`, `publish` FROM `instatgbot` ORDER BY `timestamp` DESC');
-while ($rssdata = mysqli_fetch_array($result))
-{	
-    if ($rssdata['publish'] == 1) {
-        $item = $xml->createElement('item');
-        $channel->appendChild($item);
-            
-        $data = $xml->createElement('title', htmlspecialchars(nl2br($rssdata["title"])));
-        $item->appendChild($data);
-        
-        $data = $xml->createElement('description', htmlspecialchars(nl2br($rssdata["text"]) . '<br />created by ' . $rssdata['user']));
-        $item->appendChild($data);    
-            
-        $data = $xml->createElement('link', $rssdata["link"] . $config['imgpath'] . $rssdata["imgfile"]);
-        $item->appendChild($data);
-        
-        $data = $xml->createElement('pubDate', date("D, j M Y H:i:s ", strtotime($rssdata["timestamp"])).' GMT+2');
-        $item->appendChild($data);
-        
-        $data = $xml->createElement('guid', $rssdata["link"]);
-        $item->appendChild($data);
+try { 
+    $dbh = new PDO('mysql:host=' . $config['dbservername'] . ';dbname=' . $config['dbname'], $config['dbusername'], $config['dbpassword'], array(PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION));
+} catch (PDOException $e) {
+    //echo 'Connection failled: '. $e->getMessage(); // Errormessage kann Sicherheitsrelevantes enthalen
+    echo 'Connection failled' ;
+}
+$botid = $config['botid'];
+$tokentrue = FALSE;
+if ($config['tokensecured'] && isset($_GET['token'])) {
+    $result = $dbh->query("SELECT `token` FROM `tgbot-token` WHERE botid='$botid'");
+    while ($token = $result->fetch()) {
+        if ($_GET['token'] == $token['token']) $tokentrue = TRUE;
     }
 }
-  
+if (!$config['tokensecured'] OR $tokentrue == TRUE) {
+    $xml = new DOMDocument('1.0', 'utf-8');
+    $xml->formatOutput = true;
+        
+    $rss = $xml->createElement('rss');
+    $rss->setAttribute('version', '2.0');
+    $xml->appendChild($rss);
+        
+    $channel = $xml->createElement('channel');
+    $rss->appendChild($channel); 
 
-$xml->save('rss/rss_feed.xml');
+    $head = $xml->createElement('title', 'TG Photo RSS-Feed Bot RSS-Feed');
+    $channel->appendChild($head);
+        
+    $head = $xml->createElement('description', 'TEST');
+    $channel->appendChild($head);
+        
+    $head = $xml->createElement('language', 'de');
+    $channel->appendChild($head);
+        
+    $head = $xml->createElement('link', $config['url']);
+    $channel->appendChild($head);
 
-Header( 'Location: ' .  $config['rssurl']);
+    $head = $xml->createElement('lastBuildDate', date("D, j M Y H:i:s ", time()).' GMT+2');
+    $channel->appendChild($head);
+
+    $result = $dbh->query("SELECT `title`, `text`, `link`, `imgfile`, `user`, `timestamp`, `publish` FROM `instatgbot` ORDER BY `timestamp` DESC;");
+    while ($rssdata = $result->fetch()) {	
+        if ($rssdata['publish'] == 1) {
+            $item = $xml->createElement('item');
+            $channel->appendChild($item);
+                
+            $data = $xml->createElement('title', htmlspecialchars(nl2br($rssdata["title"])));
+            $item->appendChild($data);
+            
+            $data = $xml->createElement('description', htmlspecialchars(nl2br($rssdata["text"]) . '<br />created by ' . $rssdata['user']));
+            $item->appendChild($data);    
+                
+            $data = $xml->createElement('link', $rssdata["link"] . $config['imgpath'] . $rssdata["imgfile"]);
+            $item->appendChild($data);
+            
+            $data = $xml->createElement('pubDate', date("D, j M Y H:i:s ", strtotime($rssdata["timestamp"])).' GMT+2');
+            $item->appendChild($data);
+            
+            $data = $xml->createElement('guid', $rssdata["link"]);
+            $item->appendChild($data);
+        }
+    }
+    
+    header("Content-type: text/xml");
+    echo $xml->saveXML();
+}
+else {
+    echo '<h1>Wartung</h1>';
+}
 mysqli_close($connection);
 ?>
