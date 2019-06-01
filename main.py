@@ -60,6 +60,8 @@ def photofunc(bot, update):
                 eintrag_data = (id)
                 cursor.execute(eintrag, eintrag_data)
             cnx.commit()
+            cursor.close()
+            cnx.close()
         else:
             update.message.reply_text('Okay, bleibt geheim')
     else:
