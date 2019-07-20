@@ -84,5 +84,4 @@ if (!$config['tokensecured'] OR $tokentrue == TRUE) {
 else {
     echo '<h1>Wartung</h1>';
 }
-mysqli_close($connection);
 ?>
