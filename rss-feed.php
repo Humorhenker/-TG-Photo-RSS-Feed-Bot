@@ -55,8 +55,10 @@ if (!$config['tokensecured'] OR $tokentrue == TRUE) {
     $head = $xml->createElement('lastBuildDate', date("D, j M Y H:i:s ", time()).' GMT+2');
     $channel->appendChild($head);
 
-    $result = $dbh->query("SELECT `title`, `text`, `link`, `imgfile`, `user`, `timestamp`, `publish` FROM `instatgbot` ORDER BY `timestamp` DESC;");
-    while ($rssdata = $result->fetch()) {	
+    $sth = $dbh->prepare("SELECT `title`, `text`, `link`, `imgfile`, `user`, `timestamp`, `publish` FROM `instatgbot` WHERE TIME_TO_SEC(TIMEDIFF(:now, `timestamp`)) > :postingtreshhold ORDER BY `timestamp` DESC;");
+    $now = date('Y-m-d h:i:s');
+    $sth->execute(array(':now' => $now, ':postingtreshhold' => $config['postingtreshhold']));
+    while ($rssdata = $sth->fetch()) {	
         if ($rssdata['publish'] == 1) {
             $item = $xml->createElement('item');
             $channel->appendChild($item);
